@@ -21,6 +21,6 @@ export default (sdk: ConverterSDK) =>
 		sdk.event(sdk.Instance.open, {
 			capabilityId: "alarm_bin_removed",
 			events: [sdk.Event.closed, sdk.Event.opened],
-			get: (value) => ["closed", "opened"][+value],
+			get: (value) => [sdk.Event.closed, sdk.Event.opened][+value],
 		}),
 	]);

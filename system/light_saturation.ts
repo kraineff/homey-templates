@@ -6,8 +6,8 @@ export default (sdk: ConverterSDK) =>
 			get: (_value, { light_hue, light_saturation, light_mode }) => {
 				if (light_mode !== "color") return undefined;
 				return {
-					h: Math.round((light_hue ?? 1) * 360),
-					s: Math.round((light_saturation ?? 1) * 100),
+					h: Math.round(Number(light_hue ?? 1) * 360),
+					s: Math.round(Number(light_saturation ?? 1) * 100),
 					v: 100,
 				};
 			},

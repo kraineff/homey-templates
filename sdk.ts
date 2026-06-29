@@ -246,11 +246,13 @@ export const Unit = {
 } as const;
 export type Unit = (typeof Unit)[keyof typeof Unit];
 
-// Публичный API шаблонов. sdk инъектируется в рантайме — здесь только типы.
+// Публичный API шаблонов (единый источник). Используется фасадом для проверки
+// соответствия (sdk satisfies ConverterSDK) и эмитится генератором в templates/sdk.ts.
+// sdk инъектируется в рантайме — здесь только типы.
 
 export type HomeyValue = string | number | boolean;
 
-// Способность Homey с метаданными (min/max/step).
+// Возможность Homey с метаданными (min/max/step/decimals).
 export interface HomeyCapability {
 	id: string;
 	type: string;
@@ -259,15 +261,92 @@ export interface HomeyCapability {
 	min?: number;
 	max?: number;
 	step?: number;
+	decimals?: number;
 }
 
-// Все способности устройства разом — соседние значения для get.
-// any: тип соседнего свойства статически неизвестен.
-export type Homey = Record<string, any>;
-// Способности устройства с метаданными (min/max/step) — аргумент parse.
+// Значения соседних возможностей устройства (для get, зависящего от соседей).
+export type Homey = Record<string, HomeyValue | undefined>;
+// Возможности устройства с метаданными — аргумент parse.
 type Caps = Record<string, HomeyCapability | undefined>;
 
-// Тип цвета зависит от instance: hsv — объект, scene — имя сцены, иначе кельвины.
+// instance, сгруппированные по типу способности — чтобы билдер принимал только свои
+// (Extract проверяет, что каждый идентификатор реально есть в Instance).
+export type RangeInstance = Extract<
+	Instance,
+	"brightness" | "channel" | "humidity" | "open" | "temperature" | "volume"
+>;
+export type ToggleInstance = Extract<
+	Instance,
+	"backlight" | "controls_locked" | "ionization" | "keep_warm" | "mute" | "oscillation" | "pause"
+>;
+export type ModeInstance = Extract<
+	Instance,
+	| "cleanup_mode"
+	| "coffee_mode"
+	| "dishwashing"
+	| "fan_speed"
+	| "heat"
+	| "input_source"
+	| "program"
+	| "swing"
+	| "tea_mode"
+	| "thermostat"
+	| "ventilation_mode"
+	| "work_speed"
+>;
+export type FloatInstance = Extract<
+	Instance,
+	| "amperage"
+	| "battery_level"
+	| "co2_level"
+	| "electricity_meter"
+	| "food_level"
+	| "gas_meter"
+	| "heat_meter"
+	| "humidity"
+	| "illumination"
+	| "meter"
+	| "pm1_density"
+	| "pm2.5_density"
+	| "pm10_density"
+	| "power"
+	| "pressure"
+	| "temperature"
+	| "tvoc"
+	| "voltage"
+	| "water_level"
+	| "water_meter"
+>;
+export type ColorInstance = Extract<Instance, "hsv" | "rgb" | "temperature_k" | "scene">;
+export type EventInstance = Extract<
+	Instance,
+	| "vibration"
+	| "open"
+	| "button"
+	| "motion"
+	| "smoke"
+	| "gas"
+	| "battery_level"
+	| "water_leak"
+	| "food_level"
+	| "water_level"
+>;
+
+// Допустимые события каждого event-instance — Яндекс принимает только их.
+interface EventsByInstance {
+	vibration: Extract<Event, "tilt" | "fall" | "vibration">;
+	open: Extract<Event, "opened" | "closed">;
+	button: Extract<Event, "click" | "double_click" | "long_press">;
+	motion: Extract<Event, "detected" | "not_detected">;
+	smoke: Extract<Event, "detected" | "not_detected" | "high">;
+	gas: Extract<Event, "detected" | "not_detected" | "high">;
+	battery_level: Extract<Event, "low" | "normal">;
+	food_level: Extract<Event, "empty" | "low" | "normal">;
+	water_level: Extract<Event, "empty" | "low" | "normal">;
+	water_leak: Extract<Event, "dry" | "leak">;
+}
+
+// Тип цвета зависит от instance: hsv — объект, scene — имя сцены, иначе число.
 type ColorValue<I extends Instance> = I extends "hsv"
 	? { h: number; s: number; v: number }
 	: I extends "scene"
@@ -310,12 +389,12 @@ export interface ConverterSDK {
 	): Cap;
 	// Бинарная функция (mute, oscillation, …).
 	toggle<H extends HomeyValue = boolean>(
-		instance: Instance,
+		instance: ToggleInstance,
 		config?: Read<H, boolean> & Write<boolean>,
 	): Cap;
 	// Диапазон (яркость, громкость, температура уставки, …).
 	range<H extends HomeyValue = number>(
-		instance: Instance,
+		instance: RangeInstance,
 		config?: Read<H, number> &
 			Write<number> & {
 				unit?: Unit;
@@ -326,26 +405,27 @@ export interface ConverterSDK {
 	// Процентный диапазон: Homey-доли (0..1) или 0..100 — авто-нормализация к процентам
 	// Яндекса с учётом capabilitiesOptions устройства (min/max/step берутся с устройства).
 	percent(
-		instance: Instance,
+		instance: RangeInstance,
 		config?: { capabilityId?: string | string[]; retrievable?: boolean },
 	): Cap;
 	// Числовое свойство-датчик (только чтение).
 	float<H extends HomeyValue = number>(
-		instance: Instance,
+		instance: FloatInstance,
 		config?: Read<H, number> & { unit?: Unit },
 	): Cap;
 	// Режим из перечня modes (по умолчанию читается, только если значение входит в modes).
 	mode<H extends HomeyValue = string>(
-		instance: Instance,
+		instance: ModeInstance,
 		config: Read<H, string> & Write<string> & { modes: Mode[] },
 	): Cap;
-	// Событие-датчик (только чтение): get отображает значение Homey в одно из events.
-	event<H extends HomeyValue = boolean>(
-		instance: Instance,
-		config: Read<H, string> & { events?: Event[] },
+	// Событие-датчик (только чтение): get отображает значение Homey в одно из допустимых
+	// для этого instance событий; events — какие из них объявить.
+	event<I extends EventInstance, H extends HomeyValue = boolean>(
+		instance: I,
+		config: Read<H, EventsByInstance[I]> & { events: EventsByInstance[I][] },
 	): Cap;
-	// Цвет (hsv / temperature_k / scene).
-	color<I extends Instance, H extends HomeyValue = number>(
+	// Цвет (hsv / rgb / temperature_k / scene).
+	color<I extends ColorInstance, H extends HomeyValue = number>(
 		instance: I,
 		config: Read<H, ColorValue<I>> &
 			Write<ColorValue<I>> & { temperature_k?: { min: number; max: number }; scenes?: string[] },
