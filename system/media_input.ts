@@ -15,7 +15,7 @@ export default (sdk: ConverterSDK) => {
 		sdk.mode(sdk.Instance.input_source, {
 			modes,
 			get: (value) => modes[INPUTS.indexOf(value)],
-			set: (value) => INPUTS[modes.indexOf(value)],
+			set: (value) => INPUTS[(modes as readonly string[]).indexOf(value)],
 		}),
 	]);
 };

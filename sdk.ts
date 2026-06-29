@@ -305,9 +305,14 @@ export interface ConverterSDK {
 	converter(key: string, capabilities: Cap[], options?: { deviceType?: DeviceType }): Converter;
 
 	// on_off: вкл/выкл. momentary — кнопка (команда без чтения).
-	state<H extends HomeyValue = boolean>(config?: Read<H, boolean> & Write<boolean> & { momentary?: boolean }): Cap;
+	state<H extends HomeyValue = boolean>(
+		config?: Read<H, boolean> & Write<boolean> & { momentary?: boolean },
+	): Cap;
 	// Бинарная функция (mute, oscillation, …).
-	toggle<H extends HomeyValue = boolean>(instance: Instance, config?: Read<H, boolean> & Write<boolean>): Cap;
+	toggle<H extends HomeyValue = boolean>(
+		instance: Instance,
+		config?: Read<H, boolean> & Write<boolean>,
+	): Cap;
 	// Диапазон (яркость, громкость, температура уставки, …).
 	range<H extends HomeyValue = number>(
 		instance: Instance,
@@ -318,12 +323,27 @@ export interface ConverterSDK {
 				random_access?: boolean;
 			},
 	): Cap;
+	// Процентный диапазон: Homey-доли (0..1) или 0..100 — авто-нормализация к процентам
+	// Яндекса с учётом capabilitiesOptions устройства (min/max/step берутся с устройства).
+	percent(
+		instance: Instance,
+		config?: { capabilityId?: string | string[]; retrievable?: boolean },
+	): Cap;
 	// Числовое свойство-датчик (только чтение).
-	float<H extends HomeyValue = number>(instance: Instance, config?: Read<H, number> & { unit?: Unit }): Cap;
+	float<H extends HomeyValue = number>(
+		instance: Instance,
+		config?: Read<H, number> & { unit?: Unit },
+	): Cap;
 	// Режим из перечня modes (по умолчанию читается, только если значение входит в modes).
-	mode<H extends HomeyValue = string>(instance: Instance, config: Read<H, string> & Write<string> & { modes: Mode[] }): Cap;
+	mode<H extends HomeyValue = string>(
+		instance: Instance,
+		config: Read<H, string> & Write<string> & { modes: Mode[] },
+	): Cap;
 	// Событие-датчик (только чтение): get отображает значение Homey в одно из events.
-	event<H extends HomeyValue = boolean>(instance: Instance, config: Read<H, string> & { events?: Event[] }): Cap;
+	event<H extends HomeyValue = boolean>(
+		instance: Instance,
+		config: Read<H, string> & { events?: Event[] },
+	): Cap;
 	// Цвет (hsv / temperature_k / scene).
 	color<I extends Instance, H extends HomeyValue = number>(
 		instance: I,
