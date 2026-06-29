@@ -262,6 +262,7 @@ export interface HomeyCapability {
 	max?: number;
 	step?: number;
 	decimals?: number;
+	units?: string;
 }
 
 // Значения соседних возможностей устройства (для get, зависящего от соседей).
@@ -374,9 +375,7 @@ interface Write<Y> {
 // Дескриптор способности — результат фабрики, передаётся в converter().
 export type Cap = (converter: never, key: string) => void;
 // Готовый конвертер устройства (собирается движком; для шаблона непрозрачен).
-export interface Converter {
-	readonly __converter: unique symbol;
-}
+export type Converter = object;
 
 // То, что приходит в шаблон параметром: фабрики способностей + перечисления.
 export interface ConverterSDK {
@@ -412,6 +411,18 @@ export interface ConverterSDK {
 	float<H extends HomeyValue = number>(
 		instance: FloatInstance,
 		config?: Read<H, number> & { unit?: Unit },
+	): Cap;
+	// Датчик с конвертацией единиц: единица берётся С УСТРОЙСТВА (учитывает
+	// capabilitiesOptions) и приводится к единице Яндекса через таблицу convert;
+	// default — ключ для устройств без явной единицы.
+	floatUnit(
+		instance: FloatInstance,
+		config: {
+			capabilityId?: string | string[];
+			to: Unit;
+			default?: string;
+			convert: Record<string, (value: number) => number>;
+		},
 	): Cap;
 	// Режим из перечня modes (по умолчанию читается, только если значение входит в modes).
 	mode<H extends HomeyValue = string>(
