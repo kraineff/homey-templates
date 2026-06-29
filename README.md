@@ -147,8 +147,9 @@ sdk.event(sdk.Instance.gas, {
 
 Текущие пары (основное ← подменные): `gas` ← `alarm_co`,`alarm_co2`; `smoke` ←
 `alarm_fire`,`alarm_heat`; `motion` ← `alarm_occupancy`,`alarm_presence`; `open` ←
-`alarm_tamper`,`alarm_tank_open`; `water_leak` ← `alarm_moisture`; `tvoc` ← `measure_ch2o`;
-`co2_level` ← `measure_co`.
+`alarm_tamper`,`alarm_tank_open`; `water_leak` ← `alarm_moisture`; `tvoc` ←
+`measure_ch2o`,`measure_tvoc_index`; `co2_level` ← `measure_co`; `pm1_density` ←
+`measure_pm01`.
 
 ## Проверка перед PR
 
