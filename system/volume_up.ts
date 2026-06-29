@@ -7,7 +7,7 @@ export default (sdk: ConverterSDK) =>
 			random_access: false,
 			retrievable: false,
 			set: (value) => ({
-				[`volume_${["down", "up"][value]}`]: true,
+				[`volume_${value > 0 ? "up" : "down"}`]: true,
 			}),
 		}),
 	]);

@@ -7,7 +7,7 @@ export default (sdk: ConverterSDK) =>
 			random_access: false,
 			retrievable: false,
 			set: (value) => ({
-				[`key_channel_${["down", "up"][value]}`]: true,
+				[`key_channel_${value > 0 ? "up" : "down"}`]: true,
 			}),
 		}),
 		sdk.toggle(sdk.Instance.pause, {

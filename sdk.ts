@@ -184,6 +184,7 @@ export const Mode = {
 	ten: "ten",
 	americano: "americano",
 	cappuccino: "cappuccino",
+	double: "double",
 	double_espresso: "double_espresso",
 	espresso: "espresso",
 	latte: "latte",
