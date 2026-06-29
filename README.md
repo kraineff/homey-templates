@@ -70,9 +70,9 @@ sdk.range(sdk.Instance.temperature, {
 ```
 
 Остальные поля зависят от типа: `unit` · `range` · `random_access` · `modes` ·
-`events` · `temperature_k` · `scenes` · `retrievable` · `momentary` (кнопка).
-Если тип значения Homey не совпадает с ожидаемым, уточните дженериком:
-`sdk.state<string>({ … })`.
+`events` · `temperature_k` · `scenes` · `retrievable` · `momentary` (кнопка) ·
+`substitute` (подменное свойство, см. ниже). Если тип значения Homey не совпадает с
+ожидаемым, уточните дженериком: `sdk.state<string>({ … })`.
 
 Несколько способностей и тип устройства:
 
@@ -127,6 +127,28 @@ sdk.floatUnit(sdk.Instance.pressure, {
 `event` — `EventInstance`, `color` — цветовые. У `event` поле `events` обязательно и
 типизировано под конкретный instance (например, для `motion` допустимы только
 `detected`/`not_detected`). Неверный instance или событие — ошибка компиляции.
+
+## Подменные свойства (substitute)
+
+Несколько свойств Homey могут отображаться на один и тот же `(type, instance)` Яндекса:
+одно точное (основное) и несколько приблизительных. Например `event gas` — основное
+`alarm_gas`, подменные `alarm_co`/`alarm_co2` (у Яндекса нет отдельного CO). Пометьте
+приблизительные `substitute: true`: при наличии основного на устройстве подменное
+отбрасывается (не перезаписывает его), а без основного — работает как fallback. Порядок
+шаблонов не важен — основное всегда выигрывает.
+
+```ts
+sdk.event(sdk.Instance.gas, {
+  substitute: true, // alarm_co ≈ «газ»; уступит реальному alarm_gas
+  events: [sdk.Event.not_detected, sdk.Event.detected],
+  get: (value) => [sdk.Event.not_detected, sdk.Event.detected][+value],
+});
+```
+
+Текущие пары (основное ← подменные): `gas` ← `alarm_co`,`alarm_co2`; `smoke` ←
+`alarm_fire`,`alarm_heat`; `motion` ← `alarm_occupancy`,`alarm_presence`; `open` ←
+`alarm_tamper`,`alarm_tank_open`; `water_leak` ← `alarm_moisture`; `tvoc` ← `measure_ch2o`;
+`co2_level` ← `measure_co`.
 
 ## Проверка перед PR
 

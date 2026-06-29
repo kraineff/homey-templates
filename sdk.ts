@@ -366,6 +366,10 @@ interface Read<H extends HomeyValue, Y> {
 	// Параметры из метаданных устройства (например, границы из min/max/step).
 	parse?: (caps: Caps) => Record<string, unknown>;
 	retrievable?: boolean;
+	// Подменная (приблизительная) способность: тот же (type,instance), что и основная
+	// (напр. alarm_co → event gas). Не перекрывает основную при merge — применяется,
+	// только если основной нет.
+	substitute?: boolean;
 }
 // Запись значения Яндекса Y обратно в Homey.
 interface Write<Y> {
