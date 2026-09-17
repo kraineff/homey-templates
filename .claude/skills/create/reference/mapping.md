@@ -1,9 +1,8 @@
 # Таблицы соответствий Homey → Яндекс
 
-Источник правды — `~/server/apps/api/app/src/alice/models/yandex.ts` и
-`src/alice/converter/templates/public-types.ts`. Если здесь чего-то нет, а Яндекс это
-поддерживает — сначала добавить в `yandex.ts`, затем `bun run gen`, и только потом
-использовать в шаблоне.
+Источник правды — `sdk.ts` этого репозитория: он генерируется движком моста и содержит
+ровно то, что движок умеет. Если здесь чего-то нет, а Яндекс это поддерживает, шаблон
+написать нельзя — сначала поддержку добавляют в движок.
 
 ## Умения (управляемые)
 
@@ -124,6 +123,4 @@
 `com.nokia.health:user`, `com.sensibo:Sensibo`, `com.xiaomi-mi:airrtc.agl001`,
 `io.home-assistant.community:climate`, `net.schmidt-cisternas.pcc-alt:aircon`.
 
-Актуальный список — `ls` по папкам распакованного репозитория в
-`~/server/apps/api/app/templates`. Чего не хватает именно на живом хабе, покажет
-`scripts/inspect.ts --homey <id> --gaps`.
+Актуальный список — `ls` по папкам `system/`, `custom/` и `devices/` этого репозитория.
