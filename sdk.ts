@@ -1,4 +1,31 @@
 // СГЕНЕРИРОВАНО tools/gen-templates-sdk.ts — не редактировать вручную.
+//
+// Шаблон отображает умение устройства Homey в умение или свойство Yandex Smart Home.
+// Имя файла без расширения — это ключ: id умения Homey или driverId модели.
+//
+// Порядок решения:
+//   1. Умение или свойство? Записываемое (setable) — умение Яндекса: state, range,
+//      toggle, mode, color. Только читаемое — свойство: float (число) или event
+//      (событие из закрытого набора).
+//   2. Какой билдер? Смотри комментарии к фабрикам в ConverterSDK ниже.
+//   3. Какой instance и единица? Смотри комментарии к Instance ниже — там сказано,
+//      какому типу умения инстанс принадлежит и в чём измеряется.
+//   4. Инстанс уже занят другим шаблоном этого устройства? Ставь substitute: true,
+//      иначе молча перебьёшь действующий.
+//   5. Подходящего инстанса нет? Не подбирай отдалённо похожий — такого шаблона быть
+//      не должно, сначала поддержку добавляют в движок.
+//
+// Что легко упустить:
+//   • Значения проходят нормализацию: проценты поджимаются к 0..100, а беззнаковые
+//     float — к нулю снизу. Неверный масштаб поэтому не отбраковывается, а МАСКИРУЕТСЯ
+//     под правдоподобные «100» или «0». Отрицательные величины (например RSSI в dBm)
+//     через float не проходят вовсе.
+//   • Одно негодное значение Яндекс отвергает вместе со всей пачкой устройства,
+//     поэтому из get возвращают undefined, когда значения нет.
+//   • Подпись единицы Homey локализует языком хаба: на русском придёт «мбар», а не
+//     «mbar». В convert у floatUnit держи ключи и на латинице, и на кириллице.
+//   • Суффиксное умение (measure_power.total) обслуживает шаблон базового measure_power
+//     — отдельный файл под суффикс не нужен.
 
 export const Capability = {
 	on_off: "on_off",
@@ -90,61 +117,61 @@ export const Event = {
 export type Event = (typeof Event)[keyof typeof Event];
 
 export const Instance = {
-	on: "on",
-	hsv: "hsv",
-	rgb: "rgb",
-	temperature_k: "temperature_k",
-	scene: "scene",
-	get_stream: "get_stream",
-	cleanup_mode: "cleanup_mode",
-	coffee_mode: "coffee_mode",
-	dishwashing: "dishwashing",
-	fan_speed: "fan_speed",
-	heat: "heat",
-	input_source: "input_source",
-	program: "program",
-	swing: "swing",
-	tea_mode: "tea_mode",
-	thermostat: "thermostat",
-	ventilation_mode: "ventilation_mode",
-	work_speed: "work_speed",
-	brightness: "brightness",
-	channel: "channel",
-	humidity: "humidity",
-	open: "open",
-	temperature: "temperature",
-	volume: "volume",
-	backlight: "backlight",
-	controls_locked: "controls_locked",
-	ionization: "ionization",
-	keep_warm: "keep_warm",
-	mute: "mute",
-	oscillation: "oscillation",
-	pause: "pause",
-	amperage: "amperage",
-	battery_level: "battery_level",
-	co2_level: "co2_level",
-	electricity_meter: "electricity_meter",
-	food_level: "food_level",
-	gas_meter: "gas_meter",
-	heat_meter: "heat_meter",
-	illumination: "illumination",
-	meter: "meter",
-	pm1_density: "pm1_density",
-	pm2_5_density: "pm2.5_density",
-	pm10_density: "pm10_density",
-	power: "power",
-	pressure: "pressure",
-	tvoc: "tvoc",
-	voltage: "voltage",
-	water_level: "water_level",
-	water_meter: "water_meter",
-	vibration: "vibration",
-	button: "button",
-	motion: "motion",
-	smoke: "smoke",
-	gas: "gas",
-	water_leak: "water_leak",
+	on: "on", // on_off — включено/выключено
+	hsv: "hsv", // color_setting — объект { h, s, v }
+	rgb: "rgb", // color_setting — число
+	temperature_k: "temperature_k", // color_setting — Кельвины, границы в temperature_k
+	scene: "scene", // color_setting — имя сцены из scenes
+	get_stream: "get_stream", // video_stream — список протоколов
+	cleanup_mode: "cleanup_mode", // mode — уборка
+	coffee_mode: "coffee_mode", // mode — напиток кофемашины
+	dishwashing: "dishwashing", // mode — программа посудомойки
+	fan_speed: "fan_speed", // mode — скорость вентиляции
+	heat: "heat", // mode — режим нагрева
+	input_source: "input_source", // mode — источник сигнала
+	program: "program", // mode — рабочая программа
+	swing: "swing", // mode — направление потока
+	tea_mode: "tea_mode", // mode — заварка чая
+	thermostat: "thermostat", // mode — температурный режим климата
+	ventilation_mode: "ventilation_mode", // mode — режим вентиляции
+	work_speed: "work_speed", // mode — скорость работы
+	brightness: "brightness", // range — проценты 0..100
+	channel: "channel", // range — без единицы
+	humidity: "humidity", // range — проценты 0..100 | float — проценты 0..100
+	open: "open", // range — проценты 0..100 | event — opened/closed
+	temperature: "temperature", // range — уставка, °C или K | float — измерение, °C или K
+	volume: "volume", // range — проценты или условные единицы
+	backlight: "backlight", // toggle — подсветка
+	controls_locked: "controls_locked", // toggle — блокировка управления
+	ionization: "ionization", // toggle — ионизация
+	keep_warm: "keep_warm", // toggle — поддержание тепла
+	mute: "mute", // toggle — звук выключен
+	oscillation: "oscillation", // toggle — вращение
+	pause: "pause", // toggle — пауза
+	amperage: "amperage", // float — амперы
+	battery_level: "battery_level", // float — проценты 0..100 | event — low/normal
+	co2_level: "co2_level", // float — ppm
+	electricity_meter: "electricity_meter", // float — киловатт-часы
+	food_level: "food_level", // float — проценты 0..100 | event — empty/low/normal
+	gas_meter: "gas_meter", // float — кубометры
+	heat_meter: "heat_meter", // float — гигакалории
+	illumination: "illumination", // float — люксы
+	meter: "meter", // float — без единицы (беззнаковое: отрицательное поджимается к 0)
+	pm1_density: "pm1_density", // float — мкг/м³
+	pm2_5_density: "pm2.5_density", // float — мкг/м³
+	pm10_density: "pm10_density", // float — мкг/м³
+	power: "power", // float — ватты
+	pressure: "pressure", // float — атм, бар, мм рт. ст. или паскали
+	tvoc: "tvoc", // float — мкг/м³
+	voltage: "voltage", // float — вольты
+	water_level: "water_level", // float — проценты 0..100 | event — empty/low/normal
+	water_meter: "water_meter", // float — кубометры
+	vibration: "vibration", // event — tilt/fall/vibration
+	button: "button", // event — click/double_click/long_press
+	motion: "motion", // event — detected/not_detected
+	smoke: "smoke", // event — detected/not_detected/high
+	gas: "gas", // event — detected/not_detected/high
+	water_leak: "water_leak", // event — dry/leak
 } as const;
 export type Instance = (typeof Instance)[keyof typeof Instance];
 
@@ -390,15 +417,29 @@ export interface ConverterSDK {
 	converter(key: string, capabilities: Cap[], options?: { deviceType?: DeviceType }): Converter;
 
 	// on_off: вкл/выкл. momentary — кнопка (команда без чтения).
+	// Берут для: boolean, записываемое, главное включение устройства (onoff и аналоги).
+	//   sdk.state({})                       — умение называется как файл
+	//   sdk.state({ capabilityId: "se_onoff" })  — источник с другим id
 	state<H extends HomeyValue = boolean>(
 		config?: Read<H, boolean> & Write<boolean> & { momentary?: boolean },
 	): Cap;
 	// Бинарная функция (mute, oscillation, …).
+	// Берут для: boolean, записываемое, но НЕ главное вкл/выкл — подсветка, блокировка,
+	// пауза, звук. Главное включение — это state.
 	toggle<H extends HomeyValue = boolean>(
 		instance: ToggleInstance,
 		config?: Read<H, boolean> & Write<boolean>,
 	): Cap;
 	// Диапазон (яркость, громкость, температура уставки, …).
+	// Берут для: number, записываемое, со своей шкалой. Границы — из метаданных
+	// устройства через parse, а не константами:
+	//   sdk.range(sdk.Instance.temperature, {
+	//     unit: sdk.Unit.temperature_celsius,
+	//     parse: ({ target_temperature: c }) => ({
+	//       range: { min: c?.min ?? 4, max: c?.max ?? 35, precision: c?.step ?? 0.5 },
+	//     }),
+	//   })
+	// Если шкала процентная (доли 0..1 или 0..100) — берут percent, он проще.
 	range<H extends HomeyValue = number>(
 		instance: RangeInstance,
 		config?: Read<H, number> &
@@ -415,6 +456,9 @@ export interface ConverterSDK {
 		config?: { capabilityId?: string | string[]; retrievable?: boolean },
 	): Cap;
 	// Числовое свойство-датчик (только чтение).
+	// Берут для: number, только чтение, единица у инстанса фиксирована:
+	//   sdk.float(sdk.Instance.temperature, { unit: sdk.Unit.temperature_celsius })
+	// Если единица у устройств разная — берут floatUnit.
 	float<H extends HomeyValue = number>(
 		instance: FloatInstance,
 		config?: Read<H, number> & { unit?: Unit },
@@ -432,12 +476,24 @@ export interface ConverterSDK {
 		},
 	): Cap;
 	// Режим из перечня modes (по умолчанию читается, только если значение входит в modes).
+	// Берут для: enum, записываемое. Значения Homey отображают в режимы Яндекса:
+	//   sdk.mode(sdk.Instance.thermostat, {
+	//     modes: [sdk.Mode.auto, sdk.Mode.heat, sdk.Mode.cool],
+	//     get: (value) => ({ auto: "auto", heating: "heat" })[value],
+	//     set: (value) => ({ auto: "auto", heat: "heating" })[value],
+	//   })
 	mode<H extends HomeyValue = string>(
 		instance: ModeInstance,
 		config: Read<H, string> & Write<string> & { modes: Mode[] },
 	): Cap;
 	// Событие-датчик (только чтение): get отображает значение Homey в одно из допустимых
 	// для этого instance событий; events — какие из них объявить.
+	// Берут для: boolean только на чтение, обычно тревоги (alarm_*):
+	//   sdk.event(sdk.Instance.motion, {
+	//     events: [sdk.Event.not_detected, sdk.Event.detected],
+	//     get: (value) => [sdk.Event.not_detected, sdk.Event.detected][+value],
+	//   })
+	// Набор событий у каждого instance закрыт — см. EventsByInstance выше.
 	event<I extends EventInstance, H extends HomeyValue = boolean>(
 		instance: I,
 		config: Read<H, EventsByInstance[I]> & { events: EventsByInstance[I][] },
