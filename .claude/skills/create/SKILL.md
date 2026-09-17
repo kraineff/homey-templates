@@ -1,7 +1,7 @@
 ---
-name: homey-templates
-description: "Как писать шаблоны конвертации Homey → Yandex Smart Home (репозиторий kraineff/homey-templates, который подтягивает стек api): что брать из устройства Homey, во что это отображается у Яндекса, каким билдером SDK и с какими единицами. Процедура от осмотра живого хаба до готового шаблона, скрипт осмотра scripts/inspect.ts (список хабов, умения устройства с метаданными, пробелы без шаблона, заготовка шаблона), таблицы соответствий и грабли: локализованные единицы, доли 0..1, наборы событий, substitute, @hidden/@type, отбраковка пачки Яндексом. Use when writing or fixing a Homey→Yandex converter template, when a device is not exported to Alice, shows wrong values or units, or when the user mentions шаблон конвертера, homey-templates, sdk.converter, capability Homey, устройство не появилось в Алисе. Триггеры: шаблон, конвертер, homey, хоми, алиса, yandex smart home, capability, driverId, sdk.converter, не появилось в алисе, не те единицы."
-trigger: /homey-templates
+name: create
+description: "Как написать шаблон конвертации Homey → Yandex Smart Home для этого репозитория: что брать из устройства Homey, во что это отображается у Яндекса, каким билдером SDK и с какими единицами. Процедура от осмотра живого хаба до готового шаблона, таблицы соответствий (instance, единицы, события, режимы, типы устройств) и грабли: локализованные единицы, доли 0..1, закрытые наборы событий, substitute, заметки @hidden/@type, отбраковка пачки Яндексом на одном значении. Use when writing or fixing a converter template here, when a device is not exported to Alice, or shows wrong values or units. Триггеры: шаблон, конвертер, capability, driverId, sdk.converter, не появилось в алисе, не те единицы."
+trigger: /create
 ---
 
 # Шаблоны конвертации Homey → Яндекс
